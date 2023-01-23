@@ -164,7 +164,7 @@ fn write_results(
     results: &BTreeMap<String, ArchivingResult>,
     path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let formatted_urls = serde_json::to_string_pretty(&results)?;
+    let formatted_urls = serde_json::to_string_pretty(&results)? + "\n";
     let mut file = fs::OpenOptions::new()
         .write(true)
         .create(true)
