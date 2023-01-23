@@ -1,4 +1,4 @@
-use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
+use chrono::{NaiveDateTime, TimeZone, Utc};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub async fn archive_url(url: &str) -> Result<ArchivingResult, ArchiveError> {
     // Check to see if there's an existing archive of the requested URL.
     let latest_snapshot = fetch_latest_snapshot(url).await;
-    if let Ok(ref snapshot) = latest_snapshot {
+    if latest_snapshot.is_ok() {
         return latest_snapshot;
     }
 
@@ -101,14 +101,11 @@ fn parse_wayback_timestamp(ts: &str) -> Result<NaiveDateTime, ArchiveError> {
 
 #[derive(Deserialize, Debug)]
 struct WaybackAvailabilityResponse {
-    url: String,
     archived_snapshots: Option<HashMap<String, WaybackSnapshot>>,
 }
 
 #[derive(Deserialize, Debug)]
 struct WaybackSnapshot {
-    status: String,
-    available: bool,
     url: String,
     timestamp: String,
 }

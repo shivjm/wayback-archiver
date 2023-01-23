@@ -8,8 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 use std::sync::Arc;
 use std::thread;
 
-mod lib;
-use crate::lib::{archive_url, ArchiveError, ArchivingResult};
+use wayback_archiver::{archive_url, ArchiveError, ArchivingResult};
 
 #[derive(Parser)]
 #[clap(version = "1.0", author = "Ben Congdon <ben@congdon.dev>")]
@@ -71,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some(path) => {
                 // TODO: Propagate error better here.
                 let file = fs::File::open(path).expect("unable to open file");
-                for line in std::io::BufReader::new(file).lines() {
+                for line in io::BufReader::new(file).lines() {
                     tx.send(line.expect("line")).expect("send");
                     total_lines_count.fetch_add(1, SeqCst);
                 }
@@ -120,7 +119,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let pb = ProgressBar::new_spinner();
                         pb.enable_steady_tick(180);
                         pb.set_message("Cooldown after archiving...");
-                        std::thread::sleep(Duration::seconds(5).to_std().expect("sleep duration"));
+                        thread::sleep(Duration::seconds(5).to_std().expect("sleep duration"));
                         pb.finish_and_clear();
                     }
                     num_archived += 1;
@@ -129,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(err) => {
                     if err == ArchiveError::BandwidthExceeded {
                         pb.set_message("Bandwidth exceeded. Waiting...");
-                        std::thread::sleep(Duration::seconds(15).to_std().expect("sleep duration"));
+                        thread::sleep(Duration::seconds(15).to_std().expect("sleep duration"));
                         continue;
                     }
                     pb.finish_with_message(format!("Archiving failed: {} ({})", err, line));
