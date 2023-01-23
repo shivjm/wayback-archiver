@@ -8,10 +8,7 @@ pub async fn archive_url(url: &str) -> Result<ArchivingResult, ArchiveError> {
     // Check to see if there's an existing archive of the requested URL.
     let latest_snapshot = fetch_latest_snapshot(url).await;
     if let Ok(ref snapshot) = latest_snapshot {
-        // Only accept the existing snapshot if it was made recently.
-        if (Utc::now() - Duration::days(90)).naive_utc() < snapshot.last_archived {
-            return latest_snapshot;
-        }
+        return latest_snapshot;
     }
 
     // Request a new snapshot of the URL.
