@@ -89,9 +89,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut num_archived = 0;
     for (line_idx, line) in rx.into_iter().map(|l| l.trim().to_string()).enumerate() {
         let pb = ProgressBar::new_spinner();
-        pb.enable_steady_tick(120);
+        pb.enable_steady_tick(core::time::Duration::from_millis(120));
         pb.set_style(
-            ProgressStyle::default_spinner().template("{prefix:.bold.dim} {spinner:.blue} {msg}"),
+            ProgressStyle::default_spinner().template("{prefix:.bold.dim} {spinner:.blue} {msg}").expect("invalid template")
         );
         pb.set_prefix(format!(
             "[{}/{}]",
@@ -117,7 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ));
                     if !success.existing_snapshot {
                         let pb = ProgressBar::new_spinner();
-                        pb.enable_steady_tick(180);
+                        pb.enable_steady_tick(core::time::Duration::from_millis(180));
                         pb.set_message("Cooldown after archiving...");
                         thread::sleep(Duration::seconds(5).to_std().expect("sleep duration"));
                         pb.finish_and_clear();
