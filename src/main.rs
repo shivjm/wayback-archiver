@@ -24,6 +24,9 @@ struct Opts {
     /// A file containing urls to archive.
     #[clap(short = 'i', long)]
     urls_file: Option<String>,
+    /// How long to pause (in milliseconds) between different URLs.
+    #[clap(short = 'p', long)]
+    pause: Option<u64>,
     /// URLs to archive using the Wayback Machine. URLs can also
     /// be provided using stdin, or with --urls_file.
     urls: Vec<String>,
@@ -91,13 +94,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pb = ProgressBar::new_spinner();
         pb.enable_steady_tick(core::time::Duration::from_millis(120));
         pb.set_style(
-            ProgressStyle::default_spinner().template("{prefix:.bold.dim} {spinner:.blue} {msg}").expect("invalid template")
+            ProgressStyle::default_spinner()
+                .template("{prefix:.bold.dim} {spinner:.blue} {msg}")
+                .expect("invalid template"),
         );
         pb.set_prefix(format!(
             "[{}/{}]",
             line_idx + 1,
             total_lines_count_clone.load(SeqCst)
         ));
+
+        if let Some(pause) = &opts.pause {
+            if line_idx > 0 {
+                pb.set_message("Pausing...");
+                tokio::time::sleep(std::time::Duration::from_millis(*pause)).await;
+            }
+        }
 
         if let Some(existing) = urls.get(&line) {
             // If the last archival time of the URL was within ~6 months, accept it and move on.
